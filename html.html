@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Management System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0f7fa; /* Aqua background */
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            color: #00695c;
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #00695c;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #00695c;
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #004d40;
+        }
+        .btn {
+            background-color: #00695c;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #004d40;
+        }
+        .data-list {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e0f7fa;
+            border-radius: 8px;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        .data-list p {
+            color: #00695c;
+            margin: 5px 0;
+        }
+        hr {
+            margin: 30px 0;
+            border-top: 2px solid #00695c;
+        }
+        audio {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Stress Management System</h2>
+
+        <!-- Form for Adding Structured Data -->
+        <div class="form-group">
+            <label for="stressLevel">Stress Level (1-10)</label>
+            <input type="number" id="stressLevel" placeholder="Enter your stress level (1-10)">
+        </div>
+        <div class="form-group">
+            <label for="activity">Stress Relief Activity</label>
+            <input type="text" id="activity" placeholder="What activity are you doing to relieve stress?">
+        </div>
+        <div class="form-group">
+            <label for="mood">Mood</label>
+            <input type="text" id="mood" placeholder="How are you feeling today?">
+        </div>
+        <button class="btn" onclick="addStructuredData()">Submit Structured Data</button>
+
+        <hr>
+
+        <!-- Form for Adding Unstructured Data -->
+        <div class="form-group">
+            <label for="unstructuredData">Describe your stress situation</label>
+            <textarea id="unstructuredData" rows="4" placeholder="Describe your stress situation in your own words..."></textarea>
+        </div>
+        <div class="form-group">
+            <label for="audioFileInput">Upload Audio File</label>
+            <input type="file" id="audioFileInput" accept="audio/*">
+        </div>
+        <button class="btn" onclick="addUnstructuredData()">Submit Unstructured Data</button>
+
+        <div class="data-list" id="dataList"></div>
+
+        <hr>
+
+        <!-- View and Manage Structured Data -->
+        <button class="btn" onclick="viewStructuredData()">View Structured Data</button>
+        <div id="structuredDataList"></div>
+
+        <!-- View and Manage Unstructured Data -->
+        <button class="btn" onclick="viewUnstructuredData()">View Unstructured Data</button>
+        <div id="unstructuredDataList"></div>
+    </div>
+
+    <script>
+        // Function to add structured data
+        async function addStructuredData() {
+            const stressLevel = document.getElementById('stressLevel').value;
+            const activity = document.getElementById('activity').value;
+            const mood = document.getElementById('mood').value;
+
+            if (!stressLevel || !activity || !mood) {
+                alert('Please fill in all fields for structured data!');
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/addStructuredData', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stressLevel, activity, mood })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+            } else {
+                alert(data.error);
+            }
+
+            document.getElementById('stressLevel').value = '';
+            document.getElementById('activity').value = '';
+            document.getElementById('mood').value = '';
+        }
+
+        // Function to add unstructured data
+        async function addUnstructuredData() {
+            const unstructuredData = document.getElementById('unstructuredData').value;
+            const audioFileInput = document.getElementById('audioFileInput'); // Getting audio file input element
+
+            const formData = new FormData();
+    
+            // Append the text data
+            formData.append('unstructuredData', unstructuredData);
+
+            // If an audio file is selected, append it to the FormData
+            if (audioFileInput.files.length > 0) {
+                formData.append('audioFile', audioFileInput.files[0]);
+            }
+
+            if (!unstructuredData && audioFileInput.files.length === 0) {
+                alert('Please provide either a description or upload an audio file!');
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/addUnstructuredData', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+            } else {
+                alert(data.error);
+            }
+
+            // Clear the inputs after submission
+            document.getElementById('unstructuredData').value = '';
+            document.getElementById('audioFileInput').value = '';
+        }
+
+        // Function to view and manage structured data
+        async function viewStructuredData() {
+            const response = await fetch('http://localhost:5000/viewStructuredData');
+            const data = await response.json();
+            const listContainer = document.getElementById('structuredDataList');
+            listContainer.innerHTML = ''; // Clear previous data
+            data.forEach(item => {
+                listContainer.innerHTML += `
+                    <p>Stress Level: ${item.stressLevel}, Activity: ${item.activity}, Mood: ${item.mood}
+                    <button onclick="updateStructuredData('${item._id}')">Update</button>
+                    <button onclick="deleteStructuredData('${item._id}')">Delete</button></p>`;
+            });
+        }
+
+        // Function to update structured data
+        async function updateStructuredData(id) {
+            const response = await fetch(`http://localhost:5000/getStructuredData/${id}`);
+            const data = await response.json();
+            const { stressLevel, activity, mood } = data;
+
+            document.getElementById('stressLevel').value = stressLevel;
+            document.getElementById('activity').value = activity;
+            document.getElementById('mood').value = mood;
+
+            // Change button action to update
+            const updateButton = document.querySelector('.btn');
+            updateButton.setAttribute('onclick', `confirmUpdateStructuredData('${id}')`);
+            updateButton.innerText = 'Update Data';
+        }
+
+        
+        // Function to confirm update structured data
+        async function confirmUpdateStructuredData(id) {
+            const stressLevel = document.getElementById('stressLevel').value;
+            const activity = document.getElementById('activity').value;
+            const mood = document.getElementById('mood').value;
+
+            if (!stressLevel || !activity || !mood) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const response = await fetch(`http://localhost:5000/updateStructuredData/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stressLevel, activity, mood }),
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            viewStructuredData();
+        }
+
+        // Function to delete structured data
+        async function deleteStructuredData(id) {
+            const response = await fetch(`http://localhost:5000/deleteStructuredData/${id}`, {
+                method: 'DELETE',
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            viewStructuredData();
+        }
+
+        // Function to view unstructured data
+        async function viewUnstructuredData() {
+            const response = await fetch('http://localhost:5000/viewUnstructuredData');
+            const data = await response.json();
+            const listContainer = document.getElementById('unstructuredDataList');
+            listContainer.innerHTML = ''; // Clear previous data
+            data.forEach(item => {
+                listContainer.innerHTML += `
+                    <audio controls src="http://localhost:5000/${item.audioFilePath}"></audio>
+                    <button onclick="deleteUnstructuredData('${item._id}')">Delete</button><br>`;
+            });
+        }
+
+        // Function to delete unstructured data
+        async function deleteUnstructuredData(id) {
+            const response = await fetch(`http://localhost:5000/deleteUnstructuredData/${id}`, {
+                method: 'DELETE',
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            viewUnstructuredData();
+        }
+    </script>
+</body>
+</html>
