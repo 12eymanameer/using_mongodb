@@ -50,7 +50,7 @@ Ensure you have the following installed:
 ```
 📂 stress-management-system
 ├── 📂 uploads          # Stores uploaded audio files
-├── 📂 public           # Frontend HTML, CSS, JS
+├── 📜 html.html        # Frontend HTML
 ├── 📜 server.js        # Main backend file
 ├── 📜 package.json     # Dependencies and scripts
 └── 📜 README.md        # Documentation
